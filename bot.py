@@ -1,12 +1,13 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+
 import logging
 
 #logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 #function for /start
-def start(update: Update, context: CallbackContext)-> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
     user = update.effective_user
     user_info = {
         "user_id": user.id,
@@ -18,12 +19,12 @@ def start(update: Update, context: CallbackContext)-> None:
 #logging information about user
     logging.info(f"User info:{user_info}")
 
-    update.message.reply_text(f"
-                              Привет,{user.first_name}! Спасибо, что воспользовались ботом!"
-                              )
+    await update.message.reply_text(
+        f"Hello,{user.first_name}! How are you {user.first_name}?"
+        )
 
 #function for processing any words
-def echo(update: Update, context: CallbackContext)-> None:
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE)-> None:
     user = update.effective_user
     user_info = {
         "user_id": user.id,
@@ -33,23 +34,24 @@ def echo(update: Update, context: CallbackContext)-> None:
         "language_code": user.language_code,
     }
 
-logging.info(f"User message info: {user_info}")
+    logging.info(f"User message info: {user_info}")
 
 #answer message
-update.message.reply_text(f"Вы сказали: {update.message.text}")
+    await update.message.reply_text(f"You say: {update.message.text}")
 
 #main function
 def main():
     #your token
-    updater = Updater("YOUR_TOKEN")
-    #registration  processing
-    dispatcher = updater.dispatcher
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    TOKEN = ("your token")
+     # Create the Application
+    app = ApplicationBuilder().token(TOKEN).build()
 
+    # Register handlers
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    updater.start_polling()
-    updater.idle()
+    # Start the bot
+    app.run_polling()
 
 if __name__== '__main__':
     main()
